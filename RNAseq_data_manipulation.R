@@ -144,14 +144,12 @@ colnames(R500) <- sub("value1", "Count", colnames(R500))
 colnames(R500) <- sub("variable", "Replicate", colnames(R500))
 
 # Change Count1 to 1, etc.
-R500 <- R500[Replicate=="Count1", Replicate := "1"]
-R500 <- R500[Replicate=="Count2", Replicate := "2"]
-R500 <- R500[Replicate=="Count3", Replicate := "3"]
+R500 <- R500[Replicate == "Count1", Replicate := "1"]
+R500 <- R500[Replicate == "Count2", Replicate := "2"]
+R500 <- R500[Replicate == "Count3", Replicate := "3"]
 
 # Write csv for R500.
 write.csv(R500, file = "R500_DP_NDP_RNAseq_Neo4j.csv")
-
-
 
 
 

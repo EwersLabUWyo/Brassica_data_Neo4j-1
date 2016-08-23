@@ -30,17 +30,25 @@ groups <- list(NDE = rep(1, 24), DE = c(rep(1,12), rep(2, 12)))
 
 # Read in IMB211_DP_NDP_RNAseq csv.
 IMB211_DP_NDP_RNAseq <- read.csv(file = "IMB211_DP_NDP_RNAseq", row.names = 1)
+IMB211_DP_NDP_RNAseq <- as.matrix(IMB211_DP_NDP_RNAseq)
 
 # Combine count data and groups into a countData object.
-CD <- new(countData, data = IMB211_DP_NDP_RNAseq, 
+CD <- new("countData", data = IMB211_DP_NDP_RNAseq, 
           replicates = replicates, groups = groups)
 
 # Allow library sizes to be inferred from data. 
 libsizes(CD) <- getLibsizes(CD)
 
+# Add annotation details into countData object.
+CD@annotation <- data.frame(rownames(IMB211_DP_NDP_RNAseq))
 
+# Estimate priors by bootstrapping from data. 
+CD <- getPriors.NB(CD, samplesize = 1000, estimation = "QL", cl = cl)
 
+# Get posterior likelihoods.
+CD <- getLikelihoods(CD, cl = cl, bootStraps = 3, verbose = F)
 
+CD@posteriors[1:10, ]
 
 
 

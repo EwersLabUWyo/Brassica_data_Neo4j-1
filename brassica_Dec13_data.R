@@ -7,8 +7,6 @@
 # This "data clean-up" is meant to get rid of blank cells and data that's 
 # not going to be imported to Neo4j.
 
-library(data.table)
-
 #------------------------------------------------------------------------------
 
 # Read in file
@@ -35,3 +33,9 @@ output <- output[, c("Obs", "HHMMSS", "Photo", "Cond", "Fo", "Fm", "Fo'",
                      "TBlk", "CO2R", "CO2S", "H2OR", "H2OS", "RH_R", "RH_S",
                      "Flow", "PARabs")]
 
+# Write to csv file. 
+write.csv(output, file = "PhysTimeCourse_12132013_edit")
+
+# Repeat with files as necessary. Change file name as necessary.
+
+# TO DO: (M.Lai) Change file to include data information.

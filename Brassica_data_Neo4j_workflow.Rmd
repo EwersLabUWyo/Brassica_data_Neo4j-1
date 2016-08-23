@@ -1,0 +1,47 @@
+---
+title: "Brassica_data_Neo4j_workflow"
+author: "Mallory Lai"
+date: "August 18, 2016"
+output: html_document
+---
+
+**The purpose of this file is to provide thorough documentation of the 
+actions performed by the author, Mallory Lai, during the course of importing
+Brassica data into Neo4j.**  
+
+
+Neo4j Community Edition 3.0.4  
+R Versions will be listed within each .R file. 
+
+
+> 7/7/16  
+
+* Received data from Carmela Guadagno. Excel data files refer to single time 
+course experiment in Dec. 2013 on R500 Brassica rapa plants. Files consist of a 
+summary of desired physiological traits and single IRGA's outputs. 
+
+
+> 8/18/16 
+
+* Downloaded data to local computer's Documents folder  
+* Converted .xls files to .csv and placed in file folder "Time_series_data_csv"
+* Replaced the spaces in titles with underscores.   
+eg. 4Mall_Dried Biomass_dec 2013 to 4Mall_Dried_Biomass_dec_2013
+* Also removed underscores from the ends of file names  
+eg. PhysTimeCourse_12132013_ to PhysTimeCourse_12132013
+* an "import" folder was created within Neo4j's default data
+* TO DO (M.Lai) Data files should be consistent:
+    + File '4Mall_Dried_Biomass_dec_2013.csv' uses "W" and "D" for treatment
+    conditions whereas other files use "WW" (for "well-watered") and "Dry."
+    Change "W's" and "D's" were to be consistent with the other files. The
+    "Line" column should also be changed to R500 for consistency. 
+     
+
+
+
+
+
+
+
+
+

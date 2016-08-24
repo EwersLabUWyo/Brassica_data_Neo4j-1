@@ -16,9 +16,9 @@ R Versions will be listed within each .R file.
 
 > 7/7/16  
 
-* Received data from Carmela Guadagno. Excel data files refer to single time 
-course experiment in Dec. 2013 on R500 Brassica rapa plants. Files consist of a 
-summary of desired physiological traits and single IRGA's outputs. 
+* Received data from Carmela 'Lina' Guadagno. Excel data files refer to single 
+time course experiment in Dec. 2013 on R500 Brassica rapa plants. Files consist
+of a summary of desired physiological traits and single IRGA's outputs. 
 
 
 > 8/18/16 
@@ -30,12 +30,27 @@ eg. 4Mall_Dried Biomass_dec 2013 to 4Mall_Dried_Biomass_dec_2013
 * Also removed underscores from the ends of file names  
 eg. PhysTimeCourse_12132013_ to PhysTimeCourse_12132013
 * an "import" folder was created within Neo4j's default data
-* TO DO (M.Lai) Data files should be consistent:
+* TO DO (M.Lai): Data files should be consistent:
     + File '4Mall_Dried_Biomass_dec_2013.csv' uses "W" and "D" for treatment
     conditions whereas other files use "WW" (for "well-watered") and "Dry."
     Change "W's" and "D's" were to be consistent with the other files. The
     "Line" column should also be changed to R500 for consistency. 
      
+
+> 8/23/16  
+
+* Completed TO DO from 8/18/16 in .R file 4Mall_data_edits.R
+* Made edits to 4Mall_NSC_Starchdec2013.csv  
+    + Renamed Time Point to Timepoint for consistency.
+    + Removed AVG, SD, & SE rows
+    + Moved CARBOHYDRATES from row one up to column name.
+    + Removed first row. REMEMBER! Use units as node property.
+* TO DO (M. Lai): Make edits to remaining 4Mall csv's.
+    + Contact Lina about Time Column from 4Mall_Soil_Moisture_dec_2013.csv
+      and Time in hrs from ZT0 from 4Mall_PhotoFv'Fm'gs_dec_2013.csv  
+    
+
+
 
 
 

@@ -36,6 +36,7 @@ DriedBiomass <- DriedBiomass[Treatment == "D", Treatment := "Dry"]
 write.csv(DriedBiomass, file = "4Mall_Dried_Biomass_dec_2013_edit.csv")
 
 ###############################################################################
+
 # Read in 4Mall_NSC_Starchdec2013 file
 Starch <- read.csv(file = "4Mall_NSC_Starchdec2013.csv")
 
@@ -52,6 +53,38 @@ Starch <- Starch[, grep("X", colnames(Starch)) := NULL]
 
 # Rename Time.Point Timepoint
 colnames(Starch) <- sub("Time.Point", "Timepoint", colnames(Starch))
+
+# Move CARBOHYDRATES from row one up to column name.
+colnames(Starch) <- sub("TOTAL", "TotalCarbohydrates", colnames(Starch))
+
+# Change STARCH to Starch.
+colnames(Starch) <- sub("STARCH", "Starch", colnames(Starch))
+
+# Remove the first row. Make sure to keep mg/g as a property of NSC, Starch,
+# and Total Carbohydrates.
+Starch <- Starch[-1, ]
+
+###############################################################################
+
+# Read in 4Mall_NSC_Starchdec2013 file
+SoilMoisture <- read.csv(file = "4Mall_Soil Moisture_dec_2013.csv")
+
+# Turn into data.table.
+Starch <- data.table(Starch)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

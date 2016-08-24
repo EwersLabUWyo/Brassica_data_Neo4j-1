@@ -1,0 +1,69 @@
+---
+title: "baySeq_Neo4j_CypherScripts"
+author: "Mallory Lai"
+date: "August 23, 2016"
+output: html_document
+---
+**The purpose of this file is to record Cypher scripts used by the
+author, Mallory Lai, during the course of importing
+Brassica RNA-Seq data into Neo4j.**  
+
+LazyWebCypher was used to run multi-statement scripts. 
+http://www.lyonwj.com/LazyWebCypher/
+
+# Importation:
+
+    CREATE CONSTRAINT ON (g:Gene) ASSERT g.id IS UNIQUE;  
+    
+    USING PERIODIC COMMIT 100  
+    LOAD CSV WITH HEADERS FROM   
+    'file:///full_Neo4j.csv' AS line  
+    
+    MERGE  (g:Gene {id: line.Gene})  
+    MERGE (c:Count {count: TOINT(line.Count)})  
+    MERGE (tm:Treatment {trmt: (line.Treatment)})  
+    MERGE (t:Tissue {tissue: (line.Tissue)})  
+    CREATE (g)-[:TRANSCRIBES_TO {replicate: TOINT(line.Replicate)}]->(c)  
+    CREATE (tm)-[:TREATMENT]->(g)  
+
+This doesn't place constraint on relationship. Redundant relationships exist.   
+    
+The following code doesn't work: 
+
+    CREATE CONSTRAINT ON (g:Gene) ASSERT g.id IS UNIQUE;    
+    CREATE CONSTRAINT ON (c:Count) ASSERT c.count IS UNIQUE;    
+    CREATE CONSTRAINT ON (tm:Treatment) ASSERT tm.trmt IS UNIQUE;    
+    CREATE CONSTRAINT ON (t:Tissue) ASSERT t.type IS UNIQUE;    
+
+    USING PERIODIC COMMIT 100    
+    LOAD CSV WITH HEADERS FROM     
+    'file:///full_Neo4j.csv' AS line    
+
+    CREATE  (g:Gene {id: line.Gene})    
+    CREATE (c:Count {count: TOINT(line.Count)})    
+    CREATE (tm:Treatment {trmt: (line.Treatment)})    
+    CREATE (t:Tissue {type: (line.Tissue)})    
+
+    
+Interestingly, this returns the wrong number of rows: 
+
+    CREATE CONSTRAINT ON (g:Gene) ASSERT g.id IS UNIQUE;  
+
+    USING PERIODIC COMMIT 100  
+    LOAD CSV WITH HEADERS FROM   
+    'file:///full_Neo4j.csv' AS line  
+
+    CREATE  (g:Gene {id: line.Gene})  
+
+This returns 26,998 genes instead of 27,023. That's short 25 genes. 
+
+This returns the correct number of rows: 
+
+    USING PERIODIC COMMIT 100  
+    LOAD CSV WITH HEADERS FROM   
+    'file:///full_Neo4j.csv' AS line  
+
+    MERGE  (g:Gene {id: line.Gene})  
+
+
+

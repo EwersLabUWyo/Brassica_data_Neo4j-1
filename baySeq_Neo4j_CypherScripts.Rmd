@@ -57,7 +57,7 @@ Interestingly, this returns the wrong number of rows:
 
 This returns 26,998 genes instead of 27,023. That's short 25 genes. 
 
-This returns the correct number of rows: 
+But... This returns the correct number of rows: 
 
     USING PERIODIC COMMIT 100  
     LOAD CSV WITH HEADERS FROM   
@@ -65,5 +65,172 @@ This returns the correct number of rows:
 
     MERGE  (g:Gene {id: line.Gene})  
 
+This returns 5,480 unique counts instead of 8,286.   
+   
+    USING PERIODIC COMMIT 100  
+    LOAD CSV WITH HEADERS FROM   
+    'file:///full_Neo4j.csv' AS line  
 
+    MERGE (c:Count {count: TOINT(line.Count)})  
 
+Perhaps TOINT is the problem...
+Yes! Changing TOINT to TOFLOAT corrects this.
+
+    USING PERIODIC COMMIT 100  
+    LOAD CSV WITH HEADERS FROM   
+    'file:///full_Neo4j.csv' AS line  
+
+    MERGE (c:Count {count: TOFLOAT(line.Count)})  
+
+Ok. All together now: 
+
+    USING PERIODIC COMMIT 100  
+    LOAD CSV WITH HEADERS FROM   
+    'file:///IMB211_DP_NDP_RNAseq_Neo4j.csv' AS line  
+
+    MERGE (c:Count {count: TOFLOAT(line.Count)}) 
+    MERGE  (g:Gene {id: line.Gene})
+    MERGE (tm:Treatment {trmt: (line.Treatment)})  
+    MERGE (t:Tissue {tissue: (line.Tissue)})      
+    
+Looks good. Now let's try to create UNIQUE relationships.     
+    
+    USING PERIODIC COMMIT 100  
+    LOAD CSV WITH HEADERS FROM   
+    'file:///IMB211_DP_NDP_RNAseq_Neo4j.csv' AS line  
+
+    MERGE (c:Count {count: TOFLOAT(line.Count)})
+    MERGE (t:Tissue {tissue: (line.Tissue)}) 
+    MERGE (t)-[:TREATMENT {replicate: TOINT(line.Replicate)}]->(c)
+
+This is interesting. The relationship is wrong (should say Tissue) but it's
+much better than previous attempts. Snapshot saved on Desktop as 
+merge_relationship.
+
+Looking good!
+
+    USING PERIODIC COMMIT 100  
+    LOAD CSV WITH HEADERS FROM   
+    'file:///IMB211_DP_NDP_RNAseq_Neo4j.csv' AS line  
+
+    MERGE (c:Count {count: TOFLOAT(line.Count)}) 
+    MERGE (g:Gene {id: line.Gene})
+    MERGE (tm:Treatment {trmt: (line.Treatment)})  
+    MERGE (t:Tissue {tissue: (line.Tissue)}) 
+    MERGE (tm)-[:TREATMENT]->(g)
+    MERGE (g)-[:TRANSCRIBES_TO {replicate: TOINT(line.Replicate)}]->(c)
+    MERGE (t)-[:TISSUE_TYPE]->(c)
+
+Now let's try some queries. 
+
+Here's a very simple query: Find RNA-seq counts equal to 7.
+
+    MATCH (n:Count)
+    WHERE n.count = 7
+    RETURN n
+    
+This will show the genes that transcribe to a count of 47.
+
+    MATCH (n:Count)<-[r]-(m)
+    WHERE n.count = 47
+    RETURN distinct n,r,m
+    
+Concerned that my query doesn't yeild tissue type. However, this does: 
+
+    MATCH (n:Count)<-[r:TISSUE_TYPE]-(m)
+    WHERE n.count = 47
+    RETURN distinct n,r,m
+    
+Checking a unique value: 129,794.5
+
+    MATCH (k)-->(n:Count)<-[r:TISSUE_TYPE]-(m)
+    WHERE n.count = 129794.5
+    RETURN distinct n,r,m,k
+    
+Looks good! Let's check Treatment to make sure it's NDP.
+
+    MATCH (k)-[r:TREATMENT]->(j)-[q:TRANSCRIBES_TO]->(n:Count)
+    WHERE n.count = 129794.5
+    RETURN distinct n,r,k,j,q
+
+Uh-oh. No way to tell whether the Count came from the DP or NDP Treatment. 
+Let's try to create the Treatment relationship from Treatment to Count instead
+of Gene. 
+
+    USING PERIODIC COMMIT 100  
+    LOAD CSV WITH HEADERS FROM   
+    'file:///IMB211_DP_NDP_RNAseq_Neo4j.csv' AS line  
+
+    MERGE (c:Count {count: TOFLOAT(line.Count)}) 
+    MERGE (g:Gene {id: line.Gene})
+    MERGE (tm:Treatment {trmt: (line.Treatment)})  
+    MERGE (t:Tissue {tissue: (line.Tissue)}) 
+    MERGE (tm)-[:TREATMENT]->(c)
+    MERGE (g)-[:TRANSCRIBES_TO {replicate: TOINT(line.Replicate)}]->(c)
+    MERGE (t)-[:TISSUE_TYPE]->(c)
+
+Let's check that unique value again. 
+
+    MATCH (n:Count)<-[r]-(m)
+    WHERE n.count = 129794.5
+    RETURN distinct n,r,m
+  
+Great! Now let's check a value that's not unique but doesn't have too
+many multiples. Let's do: 3048.5.
+  
+    MATCH (n:Count)<-[r]-(m)
+    WHERE n.count = 3048.5
+    RETURN distinct n,r,m
+
+There are two treatments, three genes, and two tissue types. It's not possible
+to tell which combinations led to the count of 3048.5.
+
+Perhaps indices are needed... 
+  
+  
+  
+  
+  
+TO DO (M.Lai):
+Let's try to add the R500 data. 
+Merging IMB211 and R500 data may be easier than matching and merging data sets.
+
+```{r}
+
+#IMB211 <- read.csv(file = "IMB211_DP_NDP_RNAseq_Neo4j.csv")
+#R500 <- read.csv(file = "R500_DP_NDP_RNAseq_Neo4j.csv")
+    
+```    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

@@ -7,7 +7,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
-<meta name="viewport" content="width=device-width, initial-scale=1">
+
 
 <meta name="author" content="Mallory Lai" />
 
@@ -40,25 +40,7 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 
 
 
-
-</head>
-
-<body>
-
 <style type="text/css">
-.main-container {
-  max-width: 940px;
-  margin-left: auto;
-  margin-right: auto;
-}
-code {
-  color: inherit;
-  background-color: rgba(0, 0, 0, 0.04);
-}
-img {
-  max-width:100%;
-  height: auto;
-}
 h1 {
   font-size: 34px;
 }
@@ -79,6 +61,30 @@ h5 {
 }
 h6 {
   font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type="text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
@@ -109,7 +115,8 @@ $(document).ready(function () {
 <div class="fluid-row" id="header">
 
 
-<h1 class="title">baySeq_Neo4j_CypherScripts</h1>
+
+<h1 class="title toc-ignore">baySeq_Neo4j_CypherScripts</h1>
 <h4 class="author"><em>Mallory Lai</em></h4>
 <h4 class="date"><em>August 23, 2016</em></h4>
 
@@ -156,12 +163,74 @@ LOAD CSV WITH HEADERS FROM
 
 CREATE  (g:Gene {id: line.Gene})  </code></pre>
 <p>This returns 26,998 genes instead of 27,023. That’s short 25 genes.</p>
-<p>This returns the correct number of rows:</p>
+<p>But… This returns the correct number of rows:</p>
 <pre><code>USING PERIODIC COMMIT 100  
 LOAD CSV WITH HEADERS FROM   
 'file:///full_Neo4j.csv' AS line  
 
 MERGE  (g:Gene {id: line.Gene})  </code></pre>
+<p>This returns 5,480 unique counts instead of 8,286.</p>
+<pre><code>USING PERIODIC COMMIT 100  
+LOAD CSV WITH HEADERS FROM   
+'file:///full_Neo4j.csv' AS line  
+
+MERGE (c:Count {count: TOINT(line.Count)})  </code></pre>
+<p>Perhaps TOINT is the problem… Yes! Changing TOINT to TOFLOAT corrects this.</p>
+<pre><code>USING PERIODIC COMMIT 100  
+LOAD CSV WITH HEADERS FROM   
+'file:///full_Neo4j.csv' AS line  
+
+MERGE (c:Count {count: TOFLOAT(line.Count)})  </code></pre>
+<p>Ok. All together now:</p>
+<pre><code>USING PERIODIC COMMIT 100  
+LOAD CSV WITH HEADERS FROM   
+'file:///IMB211_DP_NDP_RNAseq_Neo4j.csv' AS line  
+
+MERGE (c:Count {count: TOFLOAT(line.Count)}) 
+MERGE  (g:Gene {id: line.Gene})
+MERGE (tm:Treatment {trmt: (line.Treatment)})  
+MERGE (t:Tissue {tissue: (line.Tissue)})      </code></pre>
+<p>Looks good. Now let’s try to create UNIQUE relationships.</p>
+<pre><code>USING PERIODIC COMMIT 100  
+LOAD CSV WITH HEADERS FROM   
+'file:///IMB211_DP_NDP_RNAseq_Neo4j.csv' AS line  
+
+MERGE (c:Count {count: TOFLOAT(line.Count)})
+MERGE (t:Tissue {tissue: (line.Tissue)}) 
+MERGE (t)-[:TREATMENT {replicate: TOINT(line.Replicate)}]-&gt;(c)</code></pre>
+<p>This is interesting. The relationship is wrong (should say Tissue) but it’s much better than previous attempts. Snapshot saved on Desktop as merge_relationship.</p>
+<p>Looking good!</p>
+<pre><code>USING PERIODIC COMMIT 100  
+LOAD CSV WITH HEADERS FROM   
+'file:///IMB211_DP_NDP_RNAseq_Neo4j.csv' AS line  
+
+MERGE (c:Count {count: TOFLOAT(line.Count)}) 
+MERGE (g:Gene {id: line.Gene})
+MERGE (tm:Treatment {trmt: (line.Treatment)})  
+MERGE (t:Tissue {tissue: (line.Tissue)}) 
+MERGE (tm)-[:TREATMENT]-&gt;(g)
+MERGE (g)-[:TRANSCRIBES_TO {replicate: TOINT(line.Replicate)}]-&gt;(c)
+MERGE (t)-[:TISSUE_TYPE]-&gt;(c)</code></pre>
+<p>Now let’s try some queries.</p>
+<p>Here’s a very simple query: Find RNA-seq counts equal to 7.</p>
+<pre><code>MATCH (n:Count)
+WHERE n.count = 7
+RETURN n</code></pre>
+<p>This will show the genes that transcribe to a count of 47.</p>
+<pre><code>MATCH (n:Count)&lt;-[r]-(m)
+WHERE n.count = 47
+RETURN distinct n,r,m</code></pre>
+<p>Concerned that my query doesn’t yeild tissue type. However, this does:</p>
+<pre><code>MATCH (n:Count)&lt;-[r:TISSUE_TYPE]-(m)
+WHERE n.count = 47
+RETURN distinct n,r,m</code></pre>
+<p>Checking a unique value: 129,794.5</p>
+<pre><code>MATCH (k)--&gt;(n:Count)&lt;-[r:TISSUE_TYPE]-(m)
+WHERE n.count = 129794.5
+RETURN distinct n,r,m,k</code></pre>
+<p>Let’s try to add the R500 data. Merging IMB211 and R500 data may be easier than matching and merging data sets.</p>
+<pre class="r"><code>#IMB211 &lt;- read.csv(file = &quot;IMB211_DP_NDP_RNAseq_Neo4j.csv&quot;)
+#R500 &lt;- read.csv(file = &quot;R500_DP_NDP_RNAseq_Neo4j.csv&quot;)</code></pre>
 </div>
 
 
